@@ -421,5 +421,6 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
   }
 });
 
+console.error("Server is running, Happy Hunting!");
 const transport = new StdioServerTransport();
 await server.connect(transport);
