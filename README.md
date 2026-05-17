@@ -42,11 +42,14 @@ npm install
 
 ## Configuration
 
-### Claude Code
+### Claude Code (recommended)
 
-Add to your `~/.mcp.json`:
+```bash
+claude mcp add hfsql -- npx hfsql-mcp
+```
 
-**If installed globally via npm:**
+Or manually add to your `~/.mcp.json`:
+
 ```json
 {
   "mcpServers": {
