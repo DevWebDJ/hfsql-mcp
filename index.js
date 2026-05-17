@@ -15,6 +15,24 @@ const connections = new Map();
 const TMP_DIR = mkdtempSync(join(tmpdir(), "hfsql-"));
 let psCallId = 0;
 
+// ─── Detect PowerShell binary ───────────────────────────────────────────────
+// Prefer pwsh (PowerShell 7+), fall back to powershell.exe (Windows 5.1)
+function findPowerShell() {
+  for (const bin of ["pwsh", "powershell"]) {
+    try {
+      execSync(`${bin} -NoProfile -NonInteractive -Command "exit 0"`, {
+        stdio: "ignore",
+        timeout: 10_000,
+      });
+      return bin;
+    } catch {}
+  }
+  throw new Error(
+    "PowerShell not found. Install PowerShell 7 (pwsh) or ensure powershell.exe is in PATH."
+  );
+}
+const PS_BIN = findPowerShell();
+
 // ─── PowerShell engine ──────────────────────────────────────────────────────
 // Scripts must assign their result to $__result (hashtable or array).
 // The wrapper serialises it to a UTF-8 JSON temp file that Node reads back.
@@ -36,7 +54,7 @@ ${script}
 
   const encoded = Buffer.from(wrapper, "utf16le").toString("base64");
   try {
-    execSync(`pwsh -NoProfile -NonInteractive -EncodedCommand ${encoded}`, {
+    execSync(`${PS_BIN} -NoProfile -NonInteractive -EncodedCommand ${encoded}`, {
       maxBuffer: 50 * 1024 * 1024,
       timeout: 120_000,
       stdio: "ignore",
@@ -421,6 +439,6 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
   }
 });
 
-console.error("Server is running, Happy Hunting!");
+console.error(`Server is running (${PS_BIN}), Happy Hunting!`);
 const transport = new StdioServerTransport();
 await server.connect(transport);
